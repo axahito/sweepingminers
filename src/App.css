@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@theme {
+  --color-grid-primary: #bdbdbd;
+  --color-grid-shadow: #7b7b7b;
+  --color-grid-highlight: #ffffff;
+}
