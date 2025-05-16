@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Difficulty, TileCondition } from "../../types/Game";
 import { generateTileId } from "../../utils/tile";
 
@@ -6,20 +5,12 @@ type Props = {
   difficulty: Difficulty;
   index: number;
   tileValue: number; // value is kept as number, if it's a bomb, value is over 100
+  tileState: TileCondition;
+  onClick: (index: number) => void;
 };
 
-const Tile = ({ index, difficulty, tileValue }: Props) => {
-  const [tileCondition, setTileCondition] = useState<TileCondition>("closed");
-
-  const handleTileClick = () => {
-    if (tileCondition === "opened") return;
-
-    if (tileValue === 100) {
-      alert("HAHAHA YOU LOSE!");
-    }
-
-    setTileCondition("opened");
-  };
+const Tile = ({ index, difficulty, tileValue, tileState, onClick }: Props) => {
+  // const [tileCondition, setTileCondition] = useState<TileCondition>("closed");
 
   const getTileClasses = (condition: TileCondition) => {
     switch (condition) {
@@ -34,8 +25,8 @@ const Tile = ({ index, difficulty, tileValue }: Props) => {
   return (
     <div
       id={generateTileId(difficulty, index)}
-      className={getTileClasses(tileCondition)}
-      onClick={handleTileClick}
+      className={getTileClasses(tileState)}
+      onClick={() => onClick(index)}
       style={{
         width: "32px",
         height: "32px",
@@ -47,9 +38,7 @@ const Tile = ({ index, difficulty, tileValue }: Props) => {
           tileValue === 100 ? "text-red-500" : ""
         }`}
       >
-        {tileCondition === "closed"
-          ? generateTileId(difficulty, index)
-          : tileValue}
+        {tileState === "closed" ? generateTileId(difficulty, index) : tileValue}
       </p>
     </div>
   );

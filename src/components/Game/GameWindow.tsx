@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import type { Difficulty } from "../../types/Game";
+import type { Difficulty, TileCondition } from "../../types/Game";
 import Tile from "./Tile";
 import {
+  getBombsInPerimeter,
   getDifficultyDimension,
   getSurroundingTilesValues,
 } from "../../utils/tile";
@@ -9,6 +10,8 @@ import {
 type TileData = {
   index: number;
   value: number;
+  perimeter: number[];
+  state: TileCondition;
 };
 
 const GameWindow = () => {
@@ -16,52 +19,53 @@ const GameWindow = () => {
   const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
   const [gridSize, setGridSize] = useState<number[]>([0, 0]);
   // const [bombIndices, setBombIndices] = useState<Set<number>>(new Set()); // TODO: put this in context
-  const [tileData, setTileData] = useState<Set<TileData>>(new Set());
+  const [tileMap, setTileMap] = useState<Map<number, TileData>>(new Map());
+
+  const handleTileClick = (index: number) => {
+    const tile = tileMap.get(index);
+
+    if (!tile || tile?.state === "opened") return;
+
+    if (tile.value === 100) {
+      alert("HAHAHA YOU LOSE!");
+    }
+
+    setTileMap((prev) => {
+      const newMap = new Map(prev);
+      const tile = newMap.get(index);
+      if (tile) newMap.set(index, { ...tile, state: "opened" });
+      return newMap;
+    });
+  };
 
   useEffect(() => {
     const newGridSize = getDifficultyDimension(difficulty);
     setGridSize(newGridSize);
     const totalTiles = newGridSize[0] * newGridSize[1];
-    const numOfBombs =
-      {
-        beginner: 10,
-        intermediate: 40,
-        expert: 99,
-      }[difficulty] || 0;
 
     const bombIndices = new Set<number>();
-    while (bombIndices.size < numOfBombs) {
+    const bombCount =
+      { beginner: 10, intermediate: 40, expert: 99 }[difficulty] || 0;
+
+    while (bombIndices.size < bombCount) {
       bombIndices.add(Math.floor(Math.random() * totalTiles));
     }
 
-    const newTileData = new Set<TileData>();
+    const tiles = new Map<number, TileData>();
+
     for (let i = 0; i < totalTiles; i++) {
       const isBomb = bombIndices.has(i);
-      newTileData.add({
+      const perimeter = getSurroundingTilesValues(i, difficulty);
+
+      tiles.set(i, {
         index: i,
-        value: isBomb ? 100 : 0,
+        value: isBomb ? 100 : getBombsInPerimeter(perimeter, bombIndices),
+        perimeter: Array.from(perimeter),
+        state: "closed",
       });
     }
 
-    for (const tile of newTileData) {
-      if (tile.value !== 100) {
-        const perimeter = getSurroundingTilesValues(tile.index, difficulty);
-        const intersection = new Set<number>();
-
-        for (const num of bombIndices) {
-          if (perimeter.has(num)) intersection.add(num);
-        }
-
-        tile.value = intersection.size;
-      }
-    }
-
-    setTileData(newTileData);
-    // setBombIndices(bombIndices);
-
-    return () => {
-      setGridSize([0, 0]);
-    };
+    setTileMap(tiles);
   }, [difficulty]);
 
   return (
@@ -91,13 +95,15 @@ const GameWindow = () => {
             gridTemplateRows: `repeat(${gridSize[1]}, 31px)`,
           }}
         >
-          {Array.from(tileData).map((tile, index) => {
+          {Array.from(tileMap).map(([_key, tile], index) => {
             return (
               <Tile
                 key={index}
                 difficulty={difficulty}
                 index={index}
                 tileValue={tile.value}
+                tileState={tile.state}
+                onClick={handleTileClick}
               />
             );
           })}

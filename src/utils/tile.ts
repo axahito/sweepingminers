@@ -41,35 +41,39 @@ export const getSurroundingTilesValues = (
     Math.floor(index / dimension[0]) === 0
       ? []
       : [
-          (Math.floor(index / dimension[0]) - 1) * dimension[0] +
-            Math.floor(
-              index - Math.floor(index / dimension[0]) * dimension[0]
-            ) -
-            1,
+          hidariNeighbor &&
+            (Math.floor(index / dimension[0]) - 1) * dimension[0] +
+              Math.floor(
+                index - Math.floor(index / dimension[0]) * dimension[0]
+              ) -
+              1,
           (Math.floor(index / dimension[0]) - 1) * dimension[0] +
             Math.floor(index - Math.floor(index / dimension[0]) * dimension[0]),
-          (Math.floor(index / dimension[0]) - 1) * dimension[0] +
-            Math.floor(
-              index - Math.floor(index / dimension[0]) * dimension[0]
-            ) +
-            1,
+          migiNeighbor &&
+            (Math.floor(index / dimension[0]) - 1) * dimension[0] +
+              Math.floor(
+                index - Math.floor(index / dimension[0]) * dimension[0]
+              ) +
+              1,
         ];
   const shitaNeighbor =
     Math.floor(index / dimension[0]) === dimension[0] - 1
       ? []
       : [
-          (Math.floor(index / dimension[0]) + 1) * dimension[0] +
-            Math.floor(
-              index - Math.floor(index / dimension[0]) * dimension[0]
-            ) -
-            1,
+          hidariNeighbor &&
+            (Math.floor(index / dimension[0]) + 1) * dimension[0] +
+              Math.floor(
+                index - Math.floor(index / dimension[0]) * dimension[0]
+              ) -
+              1,
           (Math.floor(index / dimension[0]) + 1) * dimension[0] +
             Math.floor(index - Math.floor(index / dimension[0]) * dimension[0]),
-          (Math.floor(index / dimension[0]) + 1) * dimension[0] +
-            Math.floor(
-              index - Math.floor(index / dimension[0]) * dimension[0]
-            ) +
-            1,
+          migiNeighbor &&
+            (Math.floor(index / dimension[0]) + 1) * dimension[0] +
+              Math.floor(
+                index - Math.floor(index / dimension[0]) * dimension[0]
+              ) +
+              1,
         ];
 
   hidariNeighbor && perimeterTiles.add(hidariNeighbor);
@@ -77,14 +81,24 @@ export const getSurroundingTilesValues = (
 
   if (ueNeighbor.length > 0) {
     ueNeighbor.forEach((i) => {
-      perimeterTiles.add(i);
+      if (i) {
+        perimeterTiles.add(i);
+      }
     });
   }
 
   if (shitaNeighbor.length > 0) {
     shitaNeighbor.forEach((i) => {
-      perimeterTiles.add(i);
+      if (i) {
+        perimeterTiles.add(i);
+      }
     });
   }
   return perimeterTiles;
+};
+
+export const getBombsInPerimeter = (perimeter: Set<number>, bombs: Set<number>) => {
+  let count = 0;
+  perimeter.forEach((index) => bombs.has(index) && count++);
+  return count;
 };
