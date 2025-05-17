@@ -3,13 +3,6 @@ import type { Difficulty } from "../types/Game";
 export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 export const generateTileId = (difficulty: Difficulty, index: number) => {
-  // console.log("INDEX", {
-  //   index,
-  //   calculated: Math.floor(index / getDifficultyDimension(difficulty)[0]),
-  //   char: alphabet.charAt(
-  //     Math.floor(index / getDifficultyDimension(difficulty)[0])
-  //   ),
-  // });
   return (
     alphabet.charAt(Math.floor(index / getDifficultyDimension(difficulty)[0])) +
     ((index % getDifficultyDimension(difficulty)[0]) + 1)
@@ -27,77 +20,49 @@ export const getDifficultyDimension = (difficulty: Difficulty): number[] => {
   }
 };
 
-export const getSurroundingTilesValues = (
+export const getPerimeterValues = (
   index: number,
   difficulty: Difficulty
-) => {
-  const dimension = getDifficultyDimension(difficulty);
+): Set<number> => {
+  const [width, height] = getDifficultyDimension(difficulty);
   const perimeterTiles: Set<number> = new Set();
 
-  const hidariNeighbor = index % dimension[0] === 0 ? null : index - 1;
-  const migiNeighbor =
-    index % dimension[0] === dimension[0] - 1 ? null : index + 1;
-  const ueNeighbor =
-    Math.floor(index / dimension[0]) === 0
-      ? []
-      : [
-          hidariNeighbor &&
-            (Math.floor(index / dimension[0]) - 1) * dimension[0] +
-              Math.floor(
-                index - Math.floor(index / dimension[0]) * dimension[0]
-              ) -
-              1,
-          (Math.floor(index / dimension[0]) - 1) * dimension[0] +
-            Math.floor(index - Math.floor(index / dimension[0]) * dimension[0]),
-          migiNeighbor &&
-            (Math.floor(index / dimension[0]) - 1) * dimension[0] +
-              Math.floor(
-                index - Math.floor(index / dimension[0]) * dimension[0]
-              ) +
-              1,
-        ];
-  const shitaNeighbor =
-    Math.floor(index / dimension[0]) === dimension[0] - 1
-      ? []
-      : [
-          hidariNeighbor &&
-            (Math.floor(index / dimension[0]) + 1) * dimension[0] +
-              Math.floor(
-                index - Math.floor(index / dimension[0]) * dimension[0]
-              ) -
-              1,
-          (Math.floor(index / dimension[0]) + 1) * dimension[0] +
-            Math.floor(index - Math.floor(index / dimension[0]) * dimension[0]),
-          migiNeighbor &&
-            (Math.floor(index / dimension[0]) + 1) * dimension[0] +
-              Math.floor(
-                index - Math.floor(index / dimension[0]) * dimension[0]
-              ) +
-              1,
-        ];
+  const row = Math.floor(index / width);
+  const col = index % width;
 
-  hidariNeighbor && perimeterTiles.add(hidariNeighbor);
-  migiNeighbor && perimeterTiles.add(migiNeighbor);
+  // define neighbors
+  const directions = [
+    // top
+    [-1, -1],
+    [-1, 0],
+    [-1, 1],
+    // left and right
+    [0, -1],
+    [0, 1],
+    // bottom
+    [1, -1],
+    [1, 0],
+    [1, 1],
+  ];
 
-  if (ueNeighbor.length > 0) {
-    ueNeighbor.forEach((i) => {
-      if (i) {
-        perimeterTiles.add(i);
-      }
-    });
-  }
+  directions.forEach(([dRow, dCol]) => {
+    const newRow = row + dRow;
+    const newCol = col + dCol;
 
-  if (shitaNeighbor.length > 0) {
-    shitaNeighbor.forEach((i) => {
-      if (i) {
-        perimeterTiles.add(i);
-      }
-    });
-  }
+    // edge check
+    if (newRow >= 0 && newRow < height && newCol >= 0 && newCol < width) {
+      const newIndex = newRow * width + newCol;
+      perimeterTiles.add(newIndex);
+    }
+  });
+
   return perimeterTiles;
 };
 
-export const getBombsInPerimeter = (perimeter: Set<number>, bombs: Set<number>) => {
+export const getBombsInPerimeter = (
+  perimeter: Set<number>,
+  bombs: Set<number>
+) => {
   let count = 0;
   perimeter.forEach((index) => bombs.has(index) && count++);
   return count;

@@ -4,7 +4,7 @@ import Tile from "./Tile";
 import {
   getBombsInPerimeter,
   getDifficultyDimension,
-  getSurroundingTilesValues,
+  getPerimeterValues,
 } from "../../utils/tile";
 
 type TileData = {
@@ -20,14 +20,23 @@ const GameWindow = () => {
   const [gridSize, setGridSize] = useState<number[]>([0, 0]);
   // const [bombIndices, setBombIndices] = useState<Set<number>>(new Set()); // TODO: put this in context
   const [tileMap, setTileMap] = useState<Map<number, TileData>>(new Map());
+  const [isGameLost, setIsGameLost] = useState(false);
 
-  const handleTileClick = (index: number) => {
+  const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
     const tile = tileMap.get(index);
 
-    if (!tile || tile?.state === "opened") return;
+    console.log("PERIMETER", tile);
+
+    if (
+      !tile ||
+      (tile?.state === "opened" && !isDoubleClick) ||
+      tile?.state === "flagged"
+    )
+      return;
 
     if (tile.value === 100) {
       alert("HAHAHA YOU LOSE!");
+      return;
     }
 
     setTileMap((prev) => {
@@ -36,7 +45,125 @@ const GameWindow = () => {
       if (tile) newMap.set(index, { ...tile, state: "opened" });
       return newMap;
     });
+
+    if (tile.value === 0) {
+      handleTileCrawl(tile.perimeter);
+    }
+
+    if (isDoubleClick) {
+      let flaggedTiles = 0;
+      for (const p of tile.perimeter) {
+        const perimeterTile = tileMap.get(p);
+        if (perimeterTile?.state === "flagged") flaggedTiles++;
+      }
+
+      if (flaggedTiles < tile.value || tile.value === 0) {
+        alert("CANNOT DOUBLE CLICK");
+        return;
+      }
+
+      handleTileCrawl(tile.perimeter, isDoubleClick);
+    }
   };
+
+  const handleTileCrawl = (perimeter: number[], isDoubleClick?: boolean) => {
+    if (isDoubleClick) {
+      setTileMap((prev) => {
+        const newMap = new Map(prev);
+        const visited = new Set<number>();
+
+        const crawlZero = (crawledPerimeter: number[]) => {
+          // crawl the perimeter
+          for (const p of crawledPerimeter) {
+            if (visited.has(p)) continue;
+
+            const tile = newMap.get(p);
+            if (!tile) continue;
+
+            if (tile.value !== 100 && tile.state === "closed") {
+              visited.add(p);
+              newMap.set(p, { ...tile, state: "opened" });
+
+              if (tile.value === 0) {
+                // recursively crawl the perimeter if tile value is 0
+                crawlZero(tile.perimeter);
+              }
+            }
+          }
+        };
+
+        // crawl the perimeter
+        for (const p of perimeter) {
+          const tile = newMap.get(p);
+          if (!tile) continue;
+
+          if (tile.value === 100 && tile.state !== "flagged")
+            setIsGameLost(true);
+
+          if (tile.state !== "flagged") {
+            visited.add(p);
+            newMap.set(p, { ...tile, state: "opened" });
+          }
+
+          if (tile.value === 0) {
+            // recursively crawl the perimeter if tile value is 0
+            crawlZero(tile.perimeter);
+          }
+        }
+
+        return newMap;
+      });
+    } else {
+      setTileMap((prev) => {
+        if (isGameLost) return prev;
+
+        const newMap = new Map(prev);
+        const visited = new Set<number>();
+
+        const crawlZero = (crawledPerimeter: number[]) => {
+          // crawl the perimeter
+          for (const p of crawledPerimeter) {
+            if (visited.has(p)) continue;
+
+            const tile = newMap.get(p);
+            if (!tile) continue;
+
+            if (tile.value !== 100 && tile.state === "closed") {
+              visited.add(p);
+              newMap.set(p, { ...tile, state: "opened" });
+
+              if (tile.value === 0) {
+                // recursively crawl the perimeter if tile value is 0
+                crawlZero(tile.perimeter);
+              }
+            }
+          }
+        };
+
+        crawlZero(perimeter);
+        return newMap;
+      });
+    }
+  };
+
+  const handleTileRightClick = (index: number) => {
+    const tile = tileMap.get(index);
+
+    if (!tile || tile?.state === "opened") return;
+
+    setTileMap((prev) => {
+      const newMap = new Map(prev);
+      const tile = newMap.get(index);
+      if (tile)
+        newMap.set(index, {
+          ...tile,
+          state: tile.state === "flagged" ? "closed" : "flagged",
+        });
+      return newMap;
+    });
+  };
+
+  // const handleBombCrawler = () => {};
 
   useEffect(() => {
     const newGridSize = getDifficultyDimension(difficulty);
@@ -55,7 +182,7 @@ const GameWindow = () => {
 
     for (let i = 0; i < totalTiles; i++) {
       const isBomb = bombIndices.has(i);
-      const perimeter = getSurroundingTilesValues(i, difficulty);
+      const perimeter = getPerimeterValues(i, difficulty);
 
       tiles.set(i, {
         index: i,
@@ -67,6 +194,17 @@ const GameWindow = () => {
 
     setTileMap(tiles);
   }, [difficulty]);
+
+  useEffect(() => {
+    isGameLost &&
+      setTimeout(() => {
+        alert("HAHAHA YOU LOSE!");
+      }, 100);
+
+    return () => {
+      setIsGameLost(false);
+    };
+  }, [isGameLost]);
 
   return (
     <div className="bg-grid-primary p-[16px] border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex flex-col gap-[16px]">
@@ -104,6 +242,7 @@ const GameWindow = () => {
                 tileValue={tile.value}
                 tileState={tile.state}
                 onClick={handleTileClick}
+                onRightClick={handleTileRightClick}
               />
             );
           })}
