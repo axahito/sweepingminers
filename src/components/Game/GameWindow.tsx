@@ -6,6 +6,7 @@ import {
   getDifficultyDimension,
   getPerimeterValues,
 } from "../../utils/tile";
+import { useGameStore } from "../../store";
 
 type TileData = {
   index: number;
@@ -16,28 +17,23 @@ type TileData = {
 
 const GameWindow = () => {
   // TODO: put this in context so everyone has access
-  const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
-  const [gridSize, setGridSize] = useState<number[]>([0, 0]);
-  // const [bombIndices, setBombIndices] = useState<Set<number>>(new Set()); // TODO: put this in context
+  // const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
+  // const [isGameLost, setIsGameLost] = useState(false);
+  // const [gridSize, setGridSize] = useState<number[]>([0, 0]);
+  const { difficulty, gridSize, isGameLost } = useGameStore();
+
   const [tileMap, setTileMap] = useState<Map<number, TileData>>(new Map());
-  const [isGameLost, setIsGameLost] = useState(false);
 
   const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
     const tile = tileMap.get(index);
 
-    console.log("PERIMETER", tile);
-
     if (
       !tile ||
       (tile?.state === "opened" && !isDoubleClick) ||
-      tile?.state === "flagged"
+      tile?.state === "flagged" ||
+      isGameLost
     )
       return;
-
-    if (tile.value === 100) {
-      alert("HAHAHA YOU LOSE!");
-      return;
-    }
 
     setTileMap((prev) => {
       const newMap = new Map(prev);
@@ -45,6 +41,11 @@ const GameWindow = () => {
       if (tile) newMap.set(index, { ...tile, state: "opened" });
       return newMap;
     });
+
+    if (tile.value === 100) {
+      useGameStore.setState({ isGameLost: true });
+      return;
+    }
 
     if (tile.value === 0) {
       handleTileCrawl(tile.perimeter);
@@ -98,7 +99,7 @@ const GameWindow = () => {
           if (!tile) continue;
 
           if (tile.value === 100 && tile.state !== "flagged")
-            setIsGameLost(true);
+            useGameStore.setState({ isGameLost: true });
 
           if (tile.state !== "flagged") {
             visited.add(p);
@@ -167,7 +168,7 @@ const GameWindow = () => {
 
   useEffect(() => {
     const newGridSize = getDifficultyDimension(difficulty);
-    setGridSize(newGridSize);
+    useGameStore.setState({ gridSize: newGridSize });
     const totalTiles = newGridSize[0] * newGridSize[1];
 
     const bombIndices = new Set<number>();
@@ -202,7 +203,7 @@ const GameWindow = () => {
       }, 100);
 
     return () => {
-      setIsGameLost(false);
+      useGameStore.setState({ isGameLost: false });
     };
   }, [isGameLost]);
 
@@ -215,7 +216,10 @@ const GameWindow = () => {
       <select
         name="difficulty"
         id="difficulty"
-        onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+        onChange={(e) =>
+          useGameStore.setState({ difficulty: e.target.value as Difficulty })
+        }
+        className="text-black"
       >
         <option value="beginner">Beginner</option>
         <option value="intermediate">Intermediate</option>
