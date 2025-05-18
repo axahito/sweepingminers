@@ -24,10 +24,10 @@ const Tile = ({
         return "bg-grid-primary border border-grid-shadow flex justify-center items-center";
 
       case "flagged":
-        return "bg-yellow-500 border-2 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center";
+        return "bg-yellow-500 border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center";
 
       default:
-        return "bg-grid-primary border-2 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center cursor-pointer hover:bg-grid-highlight active:bg-grid-primary";
+        return "bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center cursor-pointer hover:bg-grid-highlight active:bg-grid-primary";
     }
   };
 

@@ -16,9 +16,10 @@ interface GameState {
     generateGrid: (difficulty: Difficulty) => {
       tileMap: Map<number, TileData>;
     };
-    resetGame: () => void;
+    resetGame: (difficulty: Difficulty) => void;
     flagTile: (index: number) => void;
     crawlTile: (perimeter: number[], isDoubleClick?: boolean) => void;
+    verifyWin: () => void;
   };
 }
 
@@ -62,11 +63,11 @@ export const useGameStore = create<GameState>((set) => ({
       }
 
       // setTileMap(tiles);
-      return { tileMap: tiles };
+      return { tileMap: tiles, isGameDone: false, isGameLost: false };
     },
-    resetGame: () => {
+    resetGame: (difficulty: Difficulty) => {
       set((state) => {
-        const newGrid = state.actions.generateGrid(state.difficulty);
+        const newGrid = state.actions.generateGrid(difficulty);
 
         return { isGameLost: false, isGameDone: false, ...newGrid };
       });
@@ -163,6 +164,43 @@ export const useGameStore = create<GameState>((set) => ({
           return { tileMap: newMap };
         });
       }
+    },
+    verifyWin: () => {
+      set((state) => {
+        let isWin = false;
+        let bombCount = 0;
+
+        const newMap = new Map(state.tileMap);
+        const closedTiles = Array.from(state.tileMap.values()).filter(
+          (tile) => tile.state === "closed" || tile.state === "flagged"
+        );
+
+        switch (state.difficulty) {
+          case "intermediate":
+            bombCount = 40;
+            break;
+
+          case "expert":
+            bombCount = 99;
+            break;
+
+          default:
+            bombCount = 10;
+            break;
+        }
+
+        if (closedTiles.length === bombCount) {
+          isWin = true;
+
+          newMap.forEach((tile, index) => {
+            if (tile.value === 100) {
+              newMap.set(index, { ...tile, state: "flagged" });
+            }
+          });
+        }
+
+        return { isGameDone: isWin, tileMap: newMap };
+      });
     },
   },
 }));

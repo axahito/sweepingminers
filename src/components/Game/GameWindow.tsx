@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import type { Difficulty } from "../../types/Game";
 import Tile from "./Tile";
 import { useGameActions, useGameStore } from "../../store";
+import Emoji from "../Emoji";
 
 const GameWindow = () => {
   // TODO: put this in context so everyone has access
@@ -10,7 +11,7 @@ const GameWindow = () => {
   // const [gridSize, setGridSize] = useState<number[]>([0, 0]);
   const { difficulty, gridSize, isGameLost, isGameDone, tileMap } =
     useGameStore();
-  const { generateGrid, flagTile, crawlTile, resetGame } = useGameActions();
+  const { generateGrid, flagTile, crawlTile, verifyWin } = useGameActions();
 
   const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
     const tile = tileMap.get(index);
@@ -18,8 +19,6 @@ const GameWindow = () => {
     const isTileInvalid = !tile || tile.state === "flagged" || isGameDone;
 
     const isClickBlocked = tile?.state === "opened" && !isDoubleClick;
-
-    console.log("INVALID", { isTileInvalid, isClickBlocked, isGameLost });
 
     if (isTileInvalid || isClickBlocked || isGameLost) return;
 
@@ -53,6 +52,9 @@ const GameWindow = () => {
 
       crawlTile(tile.perimeter, isDoubleClick);
     }
+
+    // verify win condition every tile click
+    verifyWin();
   };
 
   // const handleTileCrawl = (perimeter: number[], isDoubleClick?: boolean) => {
@@ -202,13 +204,7 @@ const GameWindow = () => {
     <div className="bg-grid-primary p-[16px] border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex flex-col gap-[16px]">
       {/* heads up display */}
       <div className="w-full h-[72px] border-3 border-b-grid-highlight border-r-grid-highlight border-t-grid-shadow border-l-grid-shadow flex items-center justify-center">
-        <button className="cursor-pointer" onClick={resetGame}>
-          <img
-            src="/gifs/smile-idle.gif"
-            className="w-[50px] h-[50px] mx-auto"
-            alt="Smile animation"
-          />
-        </button>
+        <Emoji />
       </div>
 
       {/* debugging only */}
