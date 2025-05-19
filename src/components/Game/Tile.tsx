@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useGameStore } from "../../store";
 import type { Difficulty, TileCondition } from "../../types/Game";
 import { generateTileId } from "../../utils/tile";
 
@@ -18,13 +20,29 @@ const Tile = ({
   onClick,
   onRightClick,
 }: Props) => {
+  const {
+    selectedTiles: { tiles, action },
+  } = useGameStore();
+
+  const [isFlashing, setIsFlashing] = useState(false);
+
+  useEffect(() => {
+    tiles.includes(index) && action === "flash"
+      ? setIsFlashing(true)
+      : setIsFlashing(false);
+
+    return () => {
+      setIsFlashing(false);
+    };
+  }, [tiles]);
+
   const getTileClasses = (condition: TileCondition) => {
     switch (condition) {
       case "opened":
-        return "bg-grid-primary border border-grid-shadow flex justify-center items-center";
+        return "bg-grid-primary border-2 border-grid-shadow flex justify-center items-center";
 
       case "flagged":
-        return "bg-yellow-500 border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center";
+        return "bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center";
 
       default:
         return "bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center cursor-pointer hover:bg-grid-highlight active:bg-grid-primary";
@@ -34,7 +52,9 @@ const Tile = ({
   return (
     <div
       id={generateTileId(difficulty, index)}
-      className={getTileClasses(tileState)}
+      className={
+        getTileClasses(tileState) + (isFlashing ? " border-2! border-grid-shadow!" : "")
+      }
       onClick={() => onClick(index)}
       onDoubleClick={() => onClick(index, true)}
       onContextMenu={(e) => {
@@ -47,13 +67,21 @@ const Tile = ({
         boxSizing: "border-box",
       }}
     >
-      <p
-        className={`text-xs font-bold ${
-          tileValue === 100 ? "text-red-500" : ""
-        }`}
-      >
-        {tileState === "opened" && tileValue > 0 && tileValue}
-      </p>
+      {tileState === "flagged" ? (
+        <img
+          src={`/gifs/flag.gif`}
+          className="w-[20px] h-[20px] mx-auto"
+          alt="flag_animation"
+        />
+      ) : (
+        <p
+          className={`text-xs font-bold ${
+            tileValue === 100 ? "text-red-500" : ""
+          }`}
+        >
+          {tileState === "opened" && tileValue > 0 && tileValue}
+        </p>
+      )}
     </div>
   );
 };

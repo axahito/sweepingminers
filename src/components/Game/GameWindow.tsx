@@ -11,7 +11,8 @@ const GameWindow = () => {
   // const [gridSize, setGridSize] = useState<number[]>([0, 0]);
   const { difficulty, gridSize, isGameLost, isGameDone, tileMap } =
     useGameStore();
-  const { generateGrid, flagTile, crawlTile, verifyWin } = useGameActions();
+  const { generateGrid, flagTile, crawlTile, verifyWin, flashTiles } =
+    useGameActions();
 
   const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
     const tile = tileMap.get(index);
@@ -46,7 +47,7 @@ const GameWindow = () => {
       }
 
       if (flaggedTiles < tile.value || tile.value === 0) {
-        alert("CANNOT DOUBLE CLICK");
+        flashTiles(tile.perimeter);
         return;
       }
 

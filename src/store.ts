@@ -12,6 +12,10 @@ interface GameState {
   isGameLost: boolean;
   isGameDone: boolean;
   tileMap: Map<number, TileData>;
+  selectedTiles: {
+    tiles: number[];
+    action: "flash" | "reveal" | null;
+  };
   actions: {
     generateGrid: (difficulty: Difficulty) => {
       tileMap: Map<number, TileData>;
@@ -20,6 +24,7 @@ interface GameState {
     flagTile: (index: number) => void;
     crawlTile: (perimeter: number[], isDoubleClick?: boolean) => void;
     verifyWin: () => void;
+    flashTiles: (tileIndices: number[]) => void;
   };
 }
 
@@ -29,10 +34,10 @@ export const useGameStore = create<GameState>((set) => ({
   isGameLost: false,
   isGameDone: false,
   tileMap: new Map<number, TileData>(),
-
-  // update state through here
-  setState: (newState: Partial<GameState>) =>
-    set((state) => ({ ...state, ...newState })),
+  selectedTiles: {
+    tiles: [],
+    action: null,
+  },
 
   actions: {
     generateGrid: (difficulty: Difficulty) => {
@@ -74,6 +79,8 @@ export const useGameStore = create<GameState>((set) => ({
     },
     flagTile: (index: number) => {
       set((state) => {
+        if (state.isGameDone || state.isGameLost) return {};
+
         const tile = state.tileMap.get(index);
         if (!tile || tile.state === "opened") return {}; // No changes
 
@@ -201,6 +208,16 @@ export const useGameStore = create<GameState>((set) => ({
 
         return { isGameDone: isWin, tileMap: newMap };
       });
+    },
+    flashTiles: (tileIndices: number[]) => {
+      set({ selectedTiles: { tiles: tileIndices, action: "flash" } });
+
+      setTimeout(() => {
+        set({ selectedTiles: { tiles: [], action: null } });
+      }, 100);
+    },
+    clearSelection: () => {
+      set({ selectedTiles: { tiles: [], action: null } });
     },
   },
 }));
