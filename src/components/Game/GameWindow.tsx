@@ -3,6 +3,8 @@ import type { Difficulty } from "../../types/Game";
 import Tile from "./Tile";
 import { useGameActions, useGameStore } from "../../store";
 import Emoji from "../Emoji";
+import Counter from "./Counter";
+import SevenSegments from "../SevenSegments";
 
 const GameWindow = () => {
   // TODO: put this in context so everyone has access
@@ -11,18 +13,24 @@ const GameWindow = () => {
   // const [gridSize, setGridSize] = useState<number[]>([0, 0]);
   const { difficulty, gridSize, isGameLost, isGameDone, tileMap } =
     useGameStore();
-  const { generateGrid, flagTile, crawlTile, verifyWin, flashTiles } =
-    useGameActions();
+  const {
+    generateGrid,
+    flagTile,
+    crawlTile,
+    verifyWin,
+    flashTiles,
+    toggleTimer,
+  } = useGameActions();
 
   const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
     const tile = tileMap.get(index);
 
+    // validate tile
     const isTileInvalid = !tile || tile.state === "flagged" || isGameDone;
-
     const isClickBlocked = tile?.state === "opened" && !isDoubleClick;
-
     if (isTileInvalid || isClickBlocked || isGameLost) return;
 
+    // open the tile
     useGameStore.setState((state) => {
       const newMap = new Map(state.tileMap);
       const tile = newMap.get(index);
@@ -30,15 +38,26 @@ const GameWindow = () => {
       return { tileMap: newMap };
     });
 
+    // check if first click
+    const isFirstClick = ![...tileMap.values()].some(
+      (tile) => tile.state === "opened"
+    );
+    if (isFirstClick) {
+      toggleTimer();
+    }
+
+    // check if bomb
     if (tile.value === 100) {
       useGameStore.setState({ isGameLost: true });
       return;
     }
 
+    // check if value is 0, crawl the perimeter
     if (tile.value === 0) {
       crawlTile(tile.perimeter);
     }
 
+    // check if double click, open the perimeter
     if (isDoubleClick) {
       let flaggedTiles = 0;
       for (const p of tile.perimeter) {
@@ -204,8 +223,16 @@ const GameWindow = () => {
   return (
     <div className="bg-grid-primary p-[16px] border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex flex-col gap-[16px]">
       {/* heads up display */}
-      <div className="w-full h-[72px] border-3 border-b-grid-highlight border-r-grid-highlight border-t-grid-shadow border-l-grid-shadow flex items-center justify-center">
+      <div className="w-full h-[72px] border-3 border-b-grid-highlight border-r-grid-highlight border-t-grid-shadow border-l-grid-shadow flex items-center justify-center relative px-[4px]">
+        <div className="mr-auto flex gap-[4px] bg-black p-[2px] border-2 border-t-grid-shadow border-l-grid-shadow border-b-grid-highlight border-r-grid-highlight">
+          <SevenSegments value={0} />
+          <SevenSegments value={0} />
+          <SevenSegments value={0} />
+        </div>
+
         <Emoji />
+
+        <Counter />
       </div>
 
       {/* debugging only */}

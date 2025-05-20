@@ -4,4 +4,45 @@
   --color-grid-primary: #bdbdbd;
   --color-grid-shadow: #7b7b7b;
   --color-grid-highlight: #ffffff;
+  --color-seven-segment-inactive: #400000;
+  --color-seven-segment-active: #cc0000;
+}
+
+@layer components {
+  .segment-x {
+    @apply h-[15.7894736842%] w-[45.4545454545%] absolute bg-[color:var(--color-seven-segment-inactive)];
+  }
+
+  .segment-x::before,
+  .segment-x::after {
+    @apply absolute content-[''] top-1/2 -translate-y-1/2 w-[20%] h-[33.333%] bg-[color:var(--color-seven-segment-inactive)];
+  }
+
+  /* Horizontal segments (top/bottom) */
+  .segment-x::before {
+    @apply -left-[20%];
+  }
+  .segment-x::after {
+    @apply -right-[20%];
+  }
+
+  .active-segment {
+    @apply bg-[color:var(--color-seven-segment-active)]! before:bg-[color:var(--color-seven-segment-active)]! after:bg-[color:var(--color-seven-segment-active)]!;
+  }
+
+  .segment-y {
+    @apply h-[26.3157894737%] w-[27.2727272727%] absolute translate-y-[-50%] bg-[color:var(--color-seven-segment-inactive)];
+  }
+
+  /* Vertical segments (left/right) */
+  .segment-y::before,
+  .segment-y::after {
+    @apply absolute content-[''] left-1/2 -translate-x-1/2 w-[33.333%] h-[20%] bg-[color:var(--color-seven-segment-inactive)];
+  }
+  .segment-y::before {
+    @apply -top-[20%];
+  }
+  .segment-y::after {
+    @apply -bottom-[20%];
+  }
 }

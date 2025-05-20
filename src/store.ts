@@ -11,6 +11,8 @@ interface GameState {
   gridSize: number[];
   isGameLost: boolean;
   isGameDone: boolean;
+  isTimerRunning: boolean;
+  timer: number;
   tileMap: Map<number, TileData>;
   selectedTiles: {
     tiles: number[];
@@ -25,6 +27,7 @@ interface GameState {
     crawlTile: (perimeter: number[], isDoubleClick?: boolean) => void;
     verifyWin: () => void;
     flashTiles: (tileIndices: number[]) => void;
+    toggleTimer: () => void;
   };
 }
 
@@ -33,6 +36,8 @@ export const useGameStore = create<GameState>((set) => ({
   gridSize: getDifficultyDimension("beginner"),
   isGameLost: false,
   isGameDone: false,
+  isTimerRunning: false,
+  timer: 0,
   tileMap: new Map<number, TileData>(),
   selectedTiles: {
     tiles: [],
@@ -74,7 +79,13 @@ export const useGameStore = create<GameState>((set) => ({
       set((state) => {
         const newGrid = state.actions.generateGrid(difficulty);
 
-        return { isGameLost: false, isGameDone: false, ...newGrid };
+        return {
+          isGameLost: false,
+          isGameDone: false,
+          ...newGrid,
+          isTimerRunning: false,
+          timer: 0,
+        };
       });
     },
     flagTile: (index: number) => {
@@ -218,6 +229,11 @@ export const useGameStore = create<GameState>((set) => ({
     },
     clearSelection: () => {
       set({ selectedTiles: { tiles: [], action: null } });
+    },
+    toggleTimer: () => {
+      set((state) => ({
+        isTimerRunning: !state.isTimerRunning,
+      }));
     },
   },
 }));
