@@ -1,7 +1,10 @@
 import { useEffect, useRef } from "react";
 
+type Segment = "a" | "b" | "c" | "d" | "e" | "f" | "g";
+
 type Props = {
   value: number;
+  override?: Segment[];
 };
 
 const sevenSegmentsConfig = [
@@ -17,7 +20,7 @@ const sevenSegmentsConfig = [
   ["a", "b", "c", "f", "g", "e"], // 9
 ];
 
-const SevenSegments = ({ value }: Props) => {
+const SevenSegments = ({ value, override }: Props) => {
   const a = useRef<HTMLDivElement>(null);
   const b = useRef<HTMLDivElement>(null);
   const c = useRef<HTMLDivElement>(null);
@@ -35,13 +38,17 @@ const SevenSegments = ({ value }: Props) => {
       }
 
       segment.current.classList.remove("active-segment");
-      if (sevenSegmentsConfig[value].includes(key)) {
+      if (
+        override
+          ? override.map(String).includes(key)
+          : sevenSegmentsConfig[value].includes(key)
+      ) {
         segment.current.classList.add("active-segment");
       }
     });
 
     return () => {};
-  }, [value]);
+  }, [value, override]);
 
   return (
     <div className="w-[27.84px] h-[48px] relative flex justify-center">

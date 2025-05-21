@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { Difficulty, TileData } from "./types/Game";
 import {
   getBombsInPerimeter,
+  getDifficultyBomb,
   getDifficultyDimension,
   getPerimeterValues,
 } from "./utils/tile";
@@ -14,6 +15,8 @@ interface GameState {
   isTimerRunning: boolean;
   timer: number;
   tileMap: Map<number, TileData>;
+  bombCount: number;
+  flagCount: number;
   selectedTiles: {
     tiles: number[];
     action: "flash" | "reveal" | null;
@@ -39,6 +42,8 @@ export const useGameStore = create<GameState>((set) => ({
   isTimerRunning: false,
   timer: 0,
   tileMap: new Map<number, TileData>(),
+  bombCount: getDifficultyBomb("beginner"),
+  flagCount: 0,
   selectedTiles: {
     tiles: [],
     action: null,
@@ -51,10 +56,8 @@ export const useGameStore = create<GameState>((set) => ({
       const totalTiles = newGridSize[0] * newGridSize[1];
 
       const bombIndices = new Set<number>();
-      const bombCount =
-        { beginner: 10, intermediate: 40, expert: 99 }[difficulty] || 0;
 
-      while (bombIndices.size < bombCount) {
+      while (bombIndices.size < getDifficultyBomb(difficulty)) {
         bombIndices.add(Math.floor(Math.random() * totalTiles));
       }
 
@@ -73,7 +76,13 @@ export const useGameStore = create<GameState>((set) => ({
       }
 
       // setTileMap(tiles);
-      return { tileMap: tiles, isGameDone: false, isGameLost: false };
+      return {
+        tileMap: tiles,
+        isGameDone: false,
+        isGameLost: false,
+        bombCount: getDifficultyBomb(difficulty),
+        flagCount: 0,
+      };
     },
     resetGame: (difficulty: Difficulty) => {
       set((state) => {
@@ -85,6 +94,8 @@ export const useGameStore = create<GameState>((set) => ({
           ...newGrid,
           isTimerRunning: false,
           timer: 0,
+          bombCount: getDifficultyBomb(state.difficulty),
+          flagCount: 0,
         };
       });
     },
@@ -93,7 +104,7 @@ export const useGameStore = create<GameState>((set) => ({
         if (state.isGameDone || state.isGameLost) return {};
 
         const tile = state.tileMap.get(index);
-        if (!tile || tile.state === "opened") return {}; // No changes
+        if (!tile || tile.state === "opened") return {};
 
         const newMap = new Map(state.tileMap);
         newMap.set(index, {
@@ -101,7 +112,16 @@ export const useGameStore = create<GameState>((set) => ({
           state: tile.state === "flagged" ? "closed" : "flagged",
         });
 
-        return { tileMap: newMap };
+        // check if first click
+        const isFirstClick = ![...state.tileMap.values()].some(
+          (tile) => tile.state === "opened"
+        );
+
+        return {
+          tileMap: newMap,
+          flagCount: state.flagCount + 1,
+          ...(isFirstClick && { isTimerRunning: true }),
+        };
       });
     },
     crawlTile: (perimeter: number[], isDoubleClick?: boolean) => {
@@ -186,28 +206,13 @@ export const useGameStore = create<GameState>((set) => ({
     verifyWin: () => {
       set((state) => {
         let isWin = false;
-        let bombCount = 0;
 
         const newMap = new Map(state.tileMap);
         const closedTiles = Array.from(state.tileMap.values()).filter(
           (tile) => tile.state === "closed" || tile.state === "flagged"
         );
 
-        switch (state.difficulty) {
-          case "intermediate":
-            bombCount = 40;
-            break;
-
-          case "expert":
-            bombCount = 99;
-            break;
-
-          default:
-            bombCount = 10;
-            break;
-        }
-
-        if (closedTiles.length === bombCount) {
+        if (closedTiles.length === state.bombCount) {
           isWin = true;
 
           newMap.forEach((tile, index) => {

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import SevenSegments from "../SevenSegments";
+import SevenSegments from "./SevenSegments";
 import { useGameStore } from "../../store";
 
-const Counter = () => {
+const Timer = () => {
   const { isGameDone, isGameLost, isTimerRunning, timer } = useGameStore();
 
   useEffect(() => {
@@ -28,4 +28,4 @@ const Counter = () => {
   );
 };
 
-export default Counter;
+export default Timer;

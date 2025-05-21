@@ -3,8 +3,8 @@ import type { Difficulty } from "../../types/Game";
 import Tile from "./Tile";
 import { useGameActions, useGameStore } from "../../store";
 import Emoji from "../Emoji";
-import Counter from "./Counter";
-import SevenSegments from "../SevenSegments";
+import Timer from "../Counter/Timer";
+import Counter from "../Counter/Counter";
 
 const GameWindow = () => {
   // TODO: put this in context so everyone has access
@@ -214,25 +214,17 @@ const GameWindow = () => {
       setTimeout(() => {
         alert("HAHAHA YOU LOSE!");
       }, 100);
-
-    // return () => {
-    //   useGameStore.setState({ isGameLost: false });
-    // };
   }, [isGameLost]);
 
   return (
     <div className="bg-grid-primary p-[16px] border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex flex-col gap-[16px]">
       {/* heads up display */}
       <div className="w-full h-[72px] border-3 border-b-grid-highlight border-r-grid-highlight border-t-grid-shadow border-l-grid-shadow flex items-center justify-center relative px-[4px]">
-        <div className="mr-auto flex gap-[4px] bg-black p-[2px] border-2 border-t-grid-shadow border-l-grid-shadow border-b-grid-highlight border-r-grid-highlight">
-          <SevenSegments value={0} />
-          <SevenSegments value={0} />
-          <SevenSegments value={0} />
-        </div>
+        <Counter />
 
         <Emoji />
 
-        <Counter />
+        <Timer />
       </div>
 
       {/* debugging only */}

@@ -20,6 +20,17 @@ export const getDifficultyDimension = (difficulty: Difficulty): number[] => {
   }
 };
 
+export const getDifficultyBomb = (difficulty: Difficulty): number => {
+  switch (difficulty) {
+    case "beginner":
+      return 10;
+    case "intermediate":
+      return 40;
+    case "expert":
+      return 99;
+  }
+};
+
 export const getPerimeterValues = (
   index: number,
   difficulty: Difficulty
