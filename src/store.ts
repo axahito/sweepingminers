@@ -119,7 +119,10 @@ export const useGameStore = create<GameState>((set) => ({
 
         return {
           tileMap: newMap,
-          flagCount: state.flagCount + 1,
+          flagCount:
+            tile.state === "flagged"
+              ? state.flagCount - 1
+              : state.flagCount + 1,
           ...(isFirstClick && { isTimerRunning: true }),
         };
       });
@@ -206,6 +209,7 @@ export const useGameStore = create<GameState>((set) => ({
     verifyWin: () => {
       set((state) => {
         let isWin = false;
+        let flagCounter = 0;
 
         const newMap = new Map(state.tileMap);
         const closedTiles = Array.from(state.tileMap.values()).filter(
@@ -216,13 +220,18 @@ export const useGameStore = create<GameState>((set) => ({
           isWin = true;
 
           newMap.forEach((tile, index) => {
-            if (tile.value === 100) {
+            if (tile.value === 100 && tile.state !== "flagged") {
               newMap.set(index, { ...tile, state: "flagged" });
+              flagCounter++;
             }
           });
         }
 
-        return { isGameDone: isWin, tileMap: newMap };
+        return {
+          isGameDone: isWin,
+          tileMap: newMap,
+          flagCount: state.flagCount + flagCounter,
+        };
       });
     },
     flashTiles: (tileIndices: number[]) => {
