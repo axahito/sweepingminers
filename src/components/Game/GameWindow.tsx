@@ -7,74 +7,98 @@ import Timer from "../Counter/Timer";
 import Counter from "../Counter/Counter";
 
 const GameWindow = () => {
-  // TODO: put this in context so everyone has access
-  // const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
-  // const [isGameLost, setIsGameLost] = useState(false);
-  // const [gridSize, setGridSize] = useState<number[]>([0, 0]);
-  const { difficulty, gridSize, isGameLost, isGameDone, tileMap } =
-    useGameStore();
-  const {
-    generateGrid,
-    flagTile,
-    crawlTile,
-    verifyWin,
-    flashTiles,
-    toggleTimer,
-  } = useGameActions();
+  const { difficulty, gridSize, isGameLost, tileMap } = useGameStore();
+  const { generateGrid, flagTile, verifyWin, openTile, crawlBomb } =
+    useGameActions();
 
-  const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
-    const tile = tileMap.get(index);
+  // const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
+  //   const tile = tileMap.get(index);
 
-    // validate tile
-    const isTileInvalid = !tile || tile.state === "flagged" || isGameDone;
-    const isClickBlocked = tile?.state === "opened" && !isDoubleClick;
-    if (isTileInvalid || isClickBlocked || isGameLost) return;
+  //   // validate tile
+  //   const isTileInvalid = !tile || tile.state === "flagged" || isGameDone;
+  //   const isClickBlocked = tile?.state === "opened" && !isDoubleClick;
+  //   if (isTileInvalid || isClickBlocked || isGameLost) return;
 
-    // open the tile
-    useGameStore.setState((state) => {
-      const newMap = new Map(state.tileMap);
-      const tile = newMap.get(index);
-      if (tile) newMap.set(index, { ...tile, state: "opened" });
-      return { tileMap: newMap };
-    });
+  //   // open the tile
+  //   useGameStore.setState((state) => {
+  //     const newMap = new Map(state.tileMap);
+  //     const tile = newMap.get(index);
+  //     if (tile) newMap.set(index, { ...tile, state: "opened" });
+  //     return { tileMap: newMap };
+  //   });
 
-    // check if first click
-    const isFirstClick = ![...tileMap.values()].some(
-      (tile) => tile.state === "opened"
-    );
-    if (isFirstClick) {
-      toggleTimer();
-    }
+  //   // check if first click
+  //   const isFirstClick = ![...tileMap.values()].some(
+  //     (tile) => tile.state === "opened"
+  //   );
+  //   if (isFirstClick) {
+  //     toggleTimer();
+  //   }
 
-    // check if bomb
-    if (tile.value === 100) {
-      useGameStore.setState({ isGameLost: true });
-      return;
-    }
+  //   // check if bomb
+  //   if (tile.value === 100) {
+  //     useGameStore.setState({ isGameLost: true });
+  //     return;
+  //   }
 
-    // check if value is 0, crawl the perimeter
-    if (tile.value === 0) {
-      crawlTile(tile.perimeter);
-    }
+  //   // check if value is 0, crawl the perimeter
+  //   if (tile.value === 0) {
+  //     crawlTile(tile.perimeter);
+  //   }
 
-    // check if double click, open the perimeter
-    if (isDoubleClick) {
-      let flaggedTiles = 0;
-      for (const p of tile.perimeter) {
-        const perimeterTile = tileMap.get(p);
-        if (perimeterTile?.state === "flagged") flaggedTiles++;
-      }
+  //   // check if double click, open the perimeter
+  //   if (isDoubleClick) {
+  //     let flaggedTiles = 0;
+  //     for (const p of tile.perimeter) {
+  //       const perimeterTile = tileMap.get(p);
+  //       if (perimeterTile?.state === "flagged") flaggedTiles++;
+  //     }
 
-      if (flaggedTiles < tile.value || tile.value === 0) {
-        flashTiles(tile.perimeter);
-        return;
-      }
+  //     if (flaggedTiles < tile.value || tile.value === 0) {
+  //       flashTiles(tile.perimeter);
+  //       return;
+  //     }
 
-      crawlTile(tile.perimeter, isDoubleClick);
-    }
+  //     crawlTile(tile.perimeter, isDoubleClick);
+  //   }
+
+  //   // verify win condition every tile click
+  //   verifyWin();
+  // };
+
+  const handleTileClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const tileElement = (e.target as HTMLDivElement).closest(".tile");
+    if (!tileElement || !(tileElement instanceof HTMLElement)) return;
+
+    const index = Number(tileElement.dataset.index);
+
+    openTile(index, false);
 
     // verify win condition every tile click
     verifyWin();
+  };
+
+  const handleTileDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const tileElement = (e.target as HTMLDivElement).closest(".tile");
+    if (!tileElement || !(tileElement instanceof HTMLElement)) return;
+
+    const index = Number(tileElement.dataset.index);
+
+    openTile(index, true);
+
+    // verify win condition every tile click
+    verifyWin();
+  };
+
+  const handleRightClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
+    const tileElement = (e.target as HTMLDivElement).closest(".tile");
+    if (!tileElement || !(tileElement instanceof HTMLElement)) return;
+
+    const index = Number(tileElement.dataset.index);
+
+    flagTile(index);
   };
 
   // const handleTileCrawl = (perimeter: number[], isDoubleClick?: boolean) => {
@@ -184,36 +208,15 @@ const GameWindow = () => {
   // const handleBombCrawler = () => {};
 
   useEffect(() => {
-    // const newGridSize = getDifficultyDimension(difficulty);
-    // useGameStore.setState({ gridSize: newGridSize });
-    // const totalTiles = newGridSize[0] * newGridSize[1];
-    // const bombIndices = new Set<number>();
-    // const bombCount =
-    //   { beginner: 10, intermediate: 40, expert: 99 }[difficulty] || 0;
-    // while (bombIndices.size < bombCount) {
-    //   bombIndices.add(Math.floor(Math.random() * totalTiles));
-    // }
-    // const tiles = new Map<number, TileData>();
-    // for (let i = 0; i < totalTiles; i++) {
-    //   const isBomb = bombIndices.has(i);
-    //   const perimeter = getPerimeterValues(i, difficulty);
-    //   tiles.set(i, {
-    //     index: i,
-    //     value: isBomb ? 100 : getBombsInPerimeter(perimeter, bombIndices),
-    //     perimeter: Array.from(perimeter),
-    //     state: "closed",
-    //   });
-    // }
-    // setTileMap(tiles);
-
     useGameStore.setState(generateGrid(difficulty));
   }, [difficulty]);
 
   useEffect(() => {
-    isGameLost &&
-      setTimeout(() => {
-        alert("HAHAHA YOU LOSE!");
-      }, 100);
+    const initiateLose = () => {
+      crawlBomb();
+    };
+
+    isGameLost && initiateLose();
   }, [isGameLost]);
 
   return (
@@ -251,6 +254,9 @@ const GameWindow = () => {
             gridTemplateColumns: `repeat(${gridSize[0]}, 31px)`,
             gridTemplateRows: `repeat(${gridSize[1]}, 31px)`,
           }}
+          onClick={handleTileClick}
+          onDoubleClick={handleTileDoubleClick}
+          onContextMenu={handleRightClick}
         >
           {Array.from(tileMap).map(([_key, tile], index) => {
             return (
@@ -260,8 +266,6 @@ const GameWindow = () => {
                 index={index}
                 tileValue={tile.value}
                 tileState={tile.state}
-                onClick={handleTileClick}
-                onRightClick={flagTile}
               />
             );
           })}

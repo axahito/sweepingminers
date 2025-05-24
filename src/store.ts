@@ -31,10 +31,12 @@ interface GameState {
     verifyWin: () => void;
     flashTiles: (tileIndices: number[]) => void;
     toggleTimer: () => void;
+    openTile: (index: number, isDoubleClick?: boolean) => void;
+    crawlBomb: () => void;
   };
 }
 
-export const useGameStore = create<GameState>((set) => ({
+export const useGameStore = create<GameState>((set, get) => ({
   difficulty: "beginner",
   gridSize: getDifficultyDimension("beginner"),
   isGameLost: false,
@@ -248,6 +250,74 @@ export const useGameStore = create<GameState>((set) => ({
       set((state) => ({
         isTimerRunning: !state.isTimerRunning,
       }));
+    },
+    openTile: (index: number, isDoubleClick?: boolean) => {
+      const tile = get().tileMap.get(index);
+
+      // validate tile
+      const isTileInvalid =
+        !tile || tile.state === "flagged" || get().isGameDone;
+      const isClickBlocked = tile?.state === "opened" && !isDoubleClick;
+      if (isTileInvalid || isClickBlocked || get().isGameLost) return;
+
+      // open the tile
+      useGameStore.setState((state) => {
+        const newMap = new Map(state.tileMap);
+        const tile = newMap.get(index);
+        if (tile) newMap.set(index, { ...tile, state: "opened" });
+        return { tileMap: newMap };
+      });
+
+      // check if first click
+      const isFirstClick =
+        [...get().tileMap.values()].filter((tile) => tile.state === "opened")
+          .length === 1;
+      if (isFirstClick) {
+        get().actions.toggleTimer();
+      }
+
+      // check if bomb
+      if (tile.value === 100) {
+        useGameStore.setState({ isGameLost: true });
+        return;
+      }
+
+      // check if value is 0, crawl the perimeter
+      if (tile.value === 0) {
+        get().actions.crawlTile(tile.perimeter);
+      }
+
+      // check if double click, open the perimeter
+      if (isDoubleClick) {
+        let flaggedTiles = 0;
+        for (const p of tile.perimeter) {
+          const perimeterTile = get().tileMap.get(p);
+          if (perimeterTile?.state === "flagged") flaggedTiles++;
+        }
+
+        if (flaggedTiles < tile.value || tile.value === 0) {
+          get().actions.flashTiles(tile.perimeter);
+          return;
+        }
+
+        get().actions.crawlTile(tile.perimeter, isDoubleClick);
+      }
+
+      // verify win condition every tile click
+      get().actions.verifyWin();
+    },
+    crawlBomb: () => {
+      const bombTiles = Array.from(get().tileMap.values()).filter(
+        (tile) => tile.value === 100 && tile.state === "closed"
+      );
+
+      useGameStore.setState((state) => {
+        const newMap = new Map(state.tileMap);
+        bombTiles.forEach((tile) => {
+          newMap.set(tile.index, { ...tile, state: "opened" });
+        });
+        return { tileMap: newMap };
+      });
     },
   },
 }));

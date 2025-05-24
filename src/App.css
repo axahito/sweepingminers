@@ -9,10 +9,25 @@
 }
 
 @layer components {
+  /* Tile classes */
+  .opened {
+    @apply bg-grid-primary border-2 border-grid-shadow flex justify-center items-center;
+  }
+
+  .flagged {
+    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center;
+  }
+
+  .closed {
+    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center cursor-pointer hover:bg-grid-highlight active:bg-grid-primary;
+  }
+
   .segment-x {
     @apply h-[15.7894736842%] w-[45.4545454545%] absolute bg-[color:var(--color-seven-segment-inactive)];
   }
+  /* Tile classes */
 
+  /* 7 segments classes */
   .segment-x::before,
   .segment-x::after {
     @apply absolute content-[''] top-1/2 -translate-y-1/2 w-[20%] h-[33.333%] bg-[color:var(--color-seven-segment-inactive)];
@@ -45,4 +60,5 @@
   .segment-y::after {
     @apply -bottom-[20%];
   }
+  /* 7 segments classes */
 }
