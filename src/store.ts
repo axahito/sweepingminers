@@ -161,8 +161,10 @@ export const useGameStore = create<GameState>((set, get) => ({
             const tile = newMap.get(p);
             if (!tile) continue;
 
-            if (tile.value === 100 && tile.state !== "flagged")
+            if (tile.value === 100 && tile.state !== "flagged") {
               useGameStore.setState({ isGameLost: true });
+              set({ selectedTiles: { tiles: [p], action: "explode" } });
+            }
 
             if (tile.state !== "flagged") {
               visited.add(p);
