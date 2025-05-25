@@ -97,7 +97,7 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
         />
       )}
 
-      {tileState === "opened" && !isBombTile && (
+      {tileState === "opened" && !isBombTile && tileValue > 0 && (
         <div className={`w-[32px] h-[32px] number number-${tileValue}`} />
       )}
     </div>
