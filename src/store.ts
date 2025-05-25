@@ -96,9 +96,10 @@ export const useGameStore = create<GameState>((set, get) => ({
           ...newGrid,
           isTimerRunning: false,
           timer: 0,
-          bombCount: getDifficultyBomb(state.difficulty),
+          bombCount: getDifficultyBomb(difficulty),
           flagCount: 0,
           selectedTiles: { tiles: [], action: null },
+          difficulty: difficulty,
         };
       });
     },

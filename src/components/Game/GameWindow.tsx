@@ -8,7 +8,7 @@ import Counter from "../Counter/Counter";
 
 const GameWindow = () => {
   const { difficulty, gridSize, isGameLost, tileMap } = useGameStore();
-  const { generateGrid, flagTile, verifyWin, openTile, crawlBomb } =
+  const { generateGrid, flagTile, verifyWin, openTile, crawlBomb, resetGame } =
     useGameActions();
 
   // const handleTileClick = (index: number, isDoubleClick: boolean = false) => {
@@ -235,7 +235,8 @@ const GameWindow = () => {
         name="difficulty"
         id="difficulty"
         onChange={(e) =>
-          useGameStore.setState({ difficulty: e.target.value as Difficulty })
+          // useGameStore.setState({ difficulty: e.target.value as Difficulty })
+          resetGame(e.target.value as Difficulty)
         }
         className="text-black"
       >

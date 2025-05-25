@@ -58,7 +58,7 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
         boxSizing: "border-box",
       }}
     >
-      {tileState === "flagged" ? (
+      {/* {tileState === "flagged" ? (
         <img
           src={`/gifs/flag.gif`}
           className="w-[24px] h-[24px] mx-auto"
@@ -78,6 +78,25 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
         >
           {tileState === "opened" && tileValue > 0 && tileValue}
         </p>
+      )} */}
+      {tileState === "flagged" && (
+        <img
+          src={`/gifs/flag.gif`}
+          className="w-[24px] h-[24px] mx-auto"
+          alt="flag_animation"
+        />
+      )}
+
+      {tileState === "opened" && tileValue === 100 && (
+        <img
+          src={`/gifs/mines.gif`}
+          className="w-[32px] h-[24px] mx-auto"
+          alt="mine_animation"
+        />
+      )}
+
+      {tileState === "opened" && tileValue > 0 && (
+        <div className={`w-[32px] h-[32px] number number-${tileValue}`} />
       )}
     </div>
   );
