@@ -11,6 +11,8 @@ type Props = {
 };
 
 const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
+  const isBombTile = tileValue === 100;
+
   const {
     selectedTiles: { tiles, action },
   } = useGameStore();
@@ -87,15 +89,15 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
         />
       )}
 
-      {tileState === "opened" && tileValue === 100 && (
+      {tileState === "opened" && isBombTile && (
         <img
           src={`/gifs/mines.gif`}
-          className="w-[32px] h-[24px] mx-auto"
+          className="w-[24px] h-[24px] mx-auto"
           alt="mine_animation"
         />
       )}
 
-      {tileState === "opened" && tileValue > 0 && (
+      {tileState === "opened" && !isBombTile && (
         <div className={`w-[32px] h-[32px] number number-${tileValue}`} />
       )}
     </div>

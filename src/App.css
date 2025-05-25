@@ -10,19 +10,23 @@
 
 @layer components {
   /* Tile classes */
+  .tile {
+    @apply flex justify-center items-center;
+  }
+
   .opened {
-    @apply bg-grid-primary border-2 border-grid-shadow flex justify-center items-center;
+    @apply bg-grid-primary border-2 border-grid-shadow;
   }
 
   .flagged {
     /* user-select: none;
     -webkit-user-drag: none;
     pointer-events: none; */
-    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center;
+    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow;
   }
 
   .closed {
-    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow flex justify-center items-center cursor-pointer hover:bg-grid-highlight active:bg-grid-primary;
+    @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow cursor-pointer hover:bg-grid-highlight active:bg-grid-primary;
   }
   /* Tile classes */
 
