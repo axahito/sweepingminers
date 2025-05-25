@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "../../store";
-import type { Difficulty, TileCondition } from "../../types/Game";
+import type {
+  Difficulty,
+  TileActionType,
+  TileCondition,
+} from "../../types/Game";
 import { generateTileId } from "../../utils/tile";
 
 type Props = {
@@ -18,9 +22,7 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
   } = useGameStore();
 
   // const [isFlashing, setIsFlashing] = useState(false);
-  const [doAction, setDoAction] = useState<
-    "flash" | "reveal" | "explode" | null
-  >(null);
+  const [doAction, setDoAction] = useState<TileActionType | null>(null);
 
   useEffect(() => {
     // tiles.includes(index) && action === "flash"
@@ -51,9 +53,9 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
     <div
       data-index={index}
       id={generateTileId(difficulty, index)}
-      className={`${tileState} ${
-        doAction === "flash" ? "border-2! border-grid-shadow!" : ""
-      } ${doAction === "explode" ? "bg-[#cc0000]!" : ""} tile`}
+      className={`${tileState} ${doAction} ${
+        doAction === "explode" && tileState === "flagged" ? "false-flag" : ""
+      } tile`}
       style={{
         width: "32px",
         height: "32px",

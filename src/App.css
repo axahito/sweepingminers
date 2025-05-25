@@ -28,6 +28,21 @@
   .closed {
     @apply bg-grid-primary border-3 border-t-grid-highlight border-l-grid-highlight border-b-grid-shadow border-r-grid-shadow cursor-pointer hover:bg-grid-highlight active:bg-grid-primary;
   }
+
+  /* Tile Actions classes */
+  .flash {
+    @apply border-2! border-grid-shadow!;
+  }
+
+  .explode {
+    @apply bg-[#ee6666]!;
+  }
+
+  .false-flag {
+    @apply bg-[#883333]! border-t-[#b66161]! border-l-[#b66161]! border-b-[#691313]! border-r-[#691313]!;
+  }
+  /* Tile Actions classes */
+
   /* Tile classes */
 
   /* 7 segments classes */
@@ -69,7 +84,7 @@
   }
   /* 7 segments classes */
 
-  /* number classes */
+  /* Number classes */
   .number {
     background-image: url("/public/icons/numbers.png");
     background-size: 128px 64px;
@@ -100,5 +115,5 @@
   .number-8 {
     background-position: -96px -32px;
   }
-  /* number classes */
+  /* Number classes */
 }

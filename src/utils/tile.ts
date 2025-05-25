@@ -1,4 +1,4 @@
-import type { Difficulty } from "../types/Game";
+import type { Difficulty, TileAction } from "../types/Game";
 
 export const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -77,4 +77,11 @@ export const getBombsInPerimeter = (
   let count = 0;
   perimeter.forEach((index) => bombs.has(index) && count++);
   return count;
+};
+
+export const generateActionId = (currentActions: TileAction[]): string => {
+  const actionId = Math.random().toString(36).slice(2, 9);
+  return currentActions.some((action) => action.actionId === actionId)
+    ? generateActionId(currentActions)
+    : actionId;
 };

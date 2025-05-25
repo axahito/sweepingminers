@@ -19,7 +19,7 @@ interface GameState {
   flagCount: number;
   selectedTiles: {
     tiles: number[];
-    action: "flash" | "reveal" | "explode" | null;
+    action: "flash" | "reveal" | "explode" | "false-flag" | null;
   };
   actions: {
     generateGrid: (difficulty: Difficulty) => {
@@ -32,6 +32,7 @@ interface GameState {
     flashTiles: (tileIndices: number[]) => void;
     toggleTimer: () => void;
     openTile: (index: number, isDoubleClick?: boolean) => void;
+    explodeBomb: (index: number) => void;
     crawlBomb: () => void;
   };
 }
@@ -163,8 +164,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             if (!tile) continue;
 
             if (tile.value === 100 && tile.state !== "flagged") {
-              useGameStore.setState({ isGameLost: true });
-              set({ selectedTiles: { tiles: [p], action: "explode" } });
+              get().actions.explodeBomb(p);
             }
 
             if (tile.state !== "flagged") {
@@ -214,29 +214,37 @@ export const useGameStore = create<GameState>((set, get) => ({
     },
     verifyWin: () => {
       set((state) => {
-        let isWin = false;
-        let flagCounter = 0;
+        const tileMapArray = Array.from(state.tileMap.values());
 
-        const newMap = new Map(state.tileMap);
-        const closedTiles = Array.from(state.tileMap.values()).filter(
+        const closedOrFlaggedTiles = tileMapArray.filter(
           (tile) => tile.state === "closed" || tile.state === "flagged"
         );
+        const openedBombs = tileMapArray.filter(
+          (tile) => tile.value === 100 && tile.state === "opened"
+        );
 
-        if (closedTiles.length === state.bombCount) {
-          isWin = true;
+        const hasWon =
+          closedOrFlaggedTiles.length === state.bombCount &&
+          openedBombs.length === 0;
 
-          newMap.forEach((tile, index) => {
-            if (tile.value === 100 && tile.state !== "flagged") {
-              newMap.set(index, { ...tile, state: "flagged" });
-              flagCounter++;
-            }
-          });
+        if (!hasWon) {
+          return {};
         }
 
+        const updatedMap = new Map(state.tileMap);
+        let additionalFlags = 0;
+
+        updatedMap.forEach((tile, index) => {
+          if (tile.value === 100 && tile.state !== "flagged") {
+            updatedMap.set(index, { ...tile, state: "flagged" });
+            additionalFlags++;
+          }
+        });
+
         return {
-          isGameDone: isWin,
-          tileMap: newMap,
-          flagCount: state.flagCount + flagCounter,
+          isGameDone: true,
+          tileMap: updatedMap,
+          flagCount: state.flagCount + additionalFlags,
         };
       });
     },
@@ -282,8 +290,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // check if bomb
       if (tile.value === 100) {
-        useGameStore.setState({ isGameLost: true });
-        set({ selectedTiles: { tiles: [index], action: "explode" } });
+        get().actions.explodeBomb(index);
         return;
       }
 
@@ -311,8 +318,24 @@ export const useGameStore = create<GameState>((set, get) => ({
       // verify win condition every tile click
       get().actions.verifyWin();
     },
+    explodeBomb: (index: number) => {
+      const tileMapArray = Array.from(get().tileMap.values());
+
+      const falseFlaggedTiles = tileMapArray
+        .filter((tile) => tile.value !== 100 && tile.state === "flagged")
+        .map((tile) => tile.index);
+
+      useGameStore.setState({ isGameLost: true });
+      set({
+        selectedTiles: {
+          tiles: [index, ...falseFlaggedTiles],
+          action: "explode",
+        },
+      });
+    },
     crawlBomb: () => {
-      const bombTiles = Array.from(get().tileMap.values()).filter(
+      const tileMapArray = Array.from(get().tileMap.values());
+      const bombTiles = tileMapArray.filter(
         (tile) => tile.value === 100 && tile.state === "closed"
       );
 
