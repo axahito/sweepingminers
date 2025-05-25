@@ -19,7 +19,7 @@ interface GameState {
   flagCount: number;
   selectedTiles: {
     tiles: number[];
-    action: "flash" | "reveal" | null;
+    action: "flash" | "reveal" | "explode" | null;
   };
   actions: {
     generateGrid: (difficulty: Difficulty) => {
@@ -98,6 +98,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           timer: 0,
           bombCount: getDifficultyBomb(state.difficulty),
           flagCount: 0,
+          selectedTiles: { tiles: [], action: null },
         };
       });
     },
@@ -279,6 +280,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       // check if bomb
       if (tile.value === 100) {
         useGameStore.setState({ isGameLost: true });
+        set({ selectedTiles: { tiles: [index], action: "explode" } });
         return;
       }
 

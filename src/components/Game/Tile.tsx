@@ -15,15 +15,20 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
     selectedTiles: { tiles, action },
   } = useGameStore();
 
-  const [isFlashing, setIsFlashing] = useState(false);
+  // const [isFlashing, setIsFlashing] = useState(false);
+  const [doAction, setDoAction] = useState<
+    "flash" | "reveal" | "explode" | null
+  >(null);
 
   useEffect(() => {
-    tiles.includes(index) && action === "flash"
-      ? setIsFlashing(true)
-      : setIsFlashing(false);
+    // tiles.includes(index) && action === "flash"
+    //   ? setIsFlashing(true)
+    //   : setIsFlashing(false);
+
+    tiles.includes(index) && setDoAction(action);
 
     return () => {
-      setIsFlashing(false);
+      setDoAction(null);
     };
   }, [tiles]);
 
@@ -45,8 +50,8 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
       data-index={index}
       id={generateTileId(difficulty, index)}
       className={`${tileState} ${
-        isFlashing ? "border-2! border-grid-shadow!" : ""
-      } tile`}
+        doAction === "flash" ? "border-2! border-grid-shadow!" : ""
+      } ${doAction === "explode" ? "bg-[#cc0000]!" : ""} tile`}
       style={{
         width: "32px",
         height: "32px",
@@ -56,8 +61,14 @@ const Tile = ({ index, difficulty, tileValue, tileState }: Props) => {
       {tileState === "flagged" ? (
         <img
           src={`/gifs/flag.gif`}
-          className="w-[20px] h-[20px] mx-auto"
+          className="w-[24px] h-[24px] mx-auto"
           alt="flag_animation"
+        />
+      ) : tileState === "opened" && tileValue === 100 ? (
+        <img
+          src={`/gifs/mines.gif`}
+          className="w-[32px] h-[24px] mx-auto"
+          alt="mine_animation"
         />
       ) : (
         <p
